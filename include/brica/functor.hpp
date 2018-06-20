@@ -1,0 +1,4 @@
+#ifndef __BRICA_KERNEL_FUNCTOR_HPP__
+#define __BRICA_KERNEL_FUNCTOR_HPP__
+
+#endif  // __BRICA_KERNEL_FUNCTOR_HPP__
