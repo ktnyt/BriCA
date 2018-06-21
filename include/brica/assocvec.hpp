@@ -56,6 +56,7 @@ class AssocVec {
     return lhs.first < rhs;
   }
 
+ public:
   /* Member functions */
   AssocVec() {}
   explicit AssocVec(const Compare& comp, const Allocator& alloc = Allocator())
