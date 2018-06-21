@@ -99,8 +99,8 @@ class AssocVec {
 
   /* Accessors */
   mapped_type& at(const key_type& key) {
-    auto last = end();
-    auto lower = std::lower_bound(begin(), last, compare_key);
+    const_iterator last = end();
+    const_iterator lower = std::lower_bound(begin(), last, compare_key);
     if (lower != last && lower->first == key) {
       return lower;
     }
@@ -152,8 +152,8 @@ class AssocVec {
   void clear() noexcept { data.clear(); }
 
   std::pair<iterator, bool> insert(const value_type& value) {
-    auto last = end();
-    auto lower = std::lower_bound(begin(), last, compare_key);
+    iterator last = end();
+    const_iterator lower = std::lower_bound(begin(), last, compare_key);
     if (lower != last && lower == value) {
       return std::make_pair<iterator, bool>(lower, false);
     }
@@ -163,7 +163,7 @@ class AssocVec {
   std::pair<iterator, bool> insert(value_type&& value) { insert(value); }
   template <class InputIterator>
   void insert(InputIterator first, InputIterator last) {
-    for (auto it = first; it != last; ++it) {
+    for (const_iterator it = first; it != last; ++it) {
       insert(it);
     }
   }
@@ -177,8 +177,8 @@ class AssocVec {
 
   template <class... Args>
   std::pair<iterator, bool> try_emplace(const key_type& key, Args&&... args) {
-    auto last = end();
-    auto lower = std::lower_bound(begin(), last, compare_key);
+    const_iterator last = end();
+    const_iterator lower = std::lower_bound(begin(), last, compare_key);
     if (lower != last && lower->first == key) {
       return std::make_pair<iterator, bool>(lower, false);
     }
@@ -189,8 +189,8 @@ class AssocVec {
 
   template <class... Args>
   std::pair<iterator, bool> try_emplace(key_type&& key, Args&&... args) {
-    auto last = end();
-    auto lower = std::lower_bound(begin(), last, compare_key);
+    const_iterator last = end();
+    const_iterator lower = std::lower_bound(begin(), last, compare_key);
     if (lower != last && lower->first == key) {
       return std::make_pair<iterator, bool>(lower, false);
     }
@@ -206,8 +206,8 @@ class AssocVec {
   }
 
   size_type erase(const key_type& key) {
-    auto last = end();
-    auto lower = std::lower_bound(begin(), last, compare_key);
+    const_iterator last = end();
+    const_iterator lower = std::lower_bound(begin(), last, compare_key);
     if (lower != last && lower->first == key) {
       erase(lower);
       return 1;
@@ -224,8 +224,8 @@ class AssocVec {
   size_type count(const key_type& key) const { return contains(key) ? 1 : 0; }
 
   iterator find(const key_type& key) {
-    auto last = end();
-    auto lower = std::lower_bound(begin(), last, key, compare_key);
+    const_iterator last = end();
+    const_iterator lower = std::lower_bound(begin(), last, key, compare_key);
     if (lower != last && lower->first == key) {
       return lower;
     }
