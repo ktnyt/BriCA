@@ -109,8 +109,8 @@ class AssocVec {
 
   const mapped_type& at(const key_type& key) const { return at(key); }
 
-  value_type& at(size_type pos) { return data.at(pos); }
-  const value_type& at(size_type pos) const { return data.at(pos); }
+  mapped_type& at(size_type pos) { return data.at(pos).second; }
+  const mapped_type& at(size_type pos) const { return data.at(pos).second; }
 
   const mapped_type& operator[](const key_type& key) {
     return this->try_emplace(key).first->second;
@@ -120,8 +120,8 @@ class AssocVec {
     return this->try_emplace(key).first->second;
   }
 
-  value_type& operator[](size_type pos) { return data[pos]; }
-  const value_type& operator[](size_type pos) const { return data[pos]; }
+  mapped_type& operator[](size_type pos) { return at(pos); }
+  const mapped_type& operator[](size_type pos) const { return at(pos); }
 
   /* Iterators */
   iterator begin() noexcept { return data.begin(); }
