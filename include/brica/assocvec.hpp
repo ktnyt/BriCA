@@ -1,7 +1,31 @@
+/******************************************************************************
+ *
+ * brica/assocvec.hpp
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ *****************************************************************************/
+
 #ifndef __BRICA_KERNEL_ASSOCVEC_HPP__
 #define __BRICA_KERNEL_ASSOCVEC_HPP__
 
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -9,18 +33,18 @@
 namespace brica {
 
 template <class Key, class T, class Compare = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T>>>
+          class Allocator = std::allocator<std::pair<Key, T>>>
 class AssocVec {
  public:
   using key_type = Key;
   using mapped_type = T;
-  using value_type = std::pair<const key_type, mapped_type>;
+  using value_type = std::pair<key_type, mapped_type>;
   using difference_type = std::ptrdiff_t;
   using key_compare = Compare;
   using allocator_type = Allocator;
 
  private:
-  using allocator_traits_type = std::allocator_traits<Allocator>;
+  using allocator_traits_type = std::allocator_traits<allocator_type>;
   using vector_type = std::vector<value_type, allocator_type>;
   using ilist_type = std::initializer_list<value_type>;
 
@@ -41,7 +65,7 @@ class AssocVec {
 
    public:
     bool operator()(const value_type& lhs, const value_type& rhs) const {
-      return compare(lhs.firtst, rhs.first);
+      return compare(lhs.first, rhs.first);
     }
 
    private:
@@ -51,9 +75,6 @@ class AssocVec {
  private:
   static bool compare_key(const value_type& lhs, const value_type& rhs) {
     return lhs.first < rhs.first;
-  }
-  static bool compare_key(const value_type& lhs, const key_type& rhs) {
-    return lhs.first < rhs;
   }
 
  public:
@@ -99,9 +120,8 @@ class AssocVec {
 
   /* Accessors */
   mapped_type& at(const key_type& key) {
-    const_iterator last = end();
-    const_iterator lower = std::lower_bound(begin(), last, compare_key);
-    if (lower != last && lower->first == key) {
+    iterator lower = lower_bound(key);
+    if (lower != end() && lower->first == key) {
       return lower;
     }
     throw std::out_of_range("AssocVec");
@@ -109,19 +129,16 @@ class AssocVec {
 
   const mapped_type& at(const key_type& key) const { return at(key); }
 
-  mapped_type& at(size_type pos) { return data.at(pos).second; }
-  const mapped_type& at(size_type pos) const { return data.at(pos).second; }
+  mapped_type& index(size_type pos) { return data.at(pos).second; }
+  const mapped_type& index(size_type pos) const { return data.at(pos).second; }
 
-  const mapped_type& operator[](const key_type& key) {
+  mapped_type& operator[](const key_type& key) {
     return this->try_emplace(key).first->second;
   }
 
-  const mapped_type& operator[](key_type&& key) {
+  mapped_type& operator[](key_type&& key) {
     return this->try_emplace(key).first->second;
   }
-
-  mapped_type& operator[](size_type pos) { return at(pos); }
-  const mapped_type& operator[](size_type pos) const { return at(pos); }
 
   /* Iterators */
   iterator begin() noexcept { return data.begin(); }
@@ -152,18 +169,17 @@ class AssocVec {
   void clear() noexcept { data.clear(); }
 
   std::pair<iterator, bool> insert(const value_type& value) {
-    iterator last = end();
-    const_iterator lower = std::lower_bound(begin(), last, compare_key);
-    if (lower != last && lower == value) {
-      return std::make_pair<iterator, bool>(lower, false);
+    iterator lower = lower_bound(value.first);
+    if (lower != end() && *lower == value) {
+      return std::pair<iterator, bool>(lower, false);
     }
-    return std::make_pair<iterator, bool>(data.insert(lower, value), true);
+    return std::pair<iterator, bool>(data.insert(lower, value), true);
   }
 
-  std::pair<iterator, bool> insert(value_type&& value) { insert(value); }
+  std::pair<iterator, bool> insert(value_type&& value) { return insert(value); }
   template <class InputIterator>
   void insert(InputIterator first, InputIterator last) {
-    for (const_iterator it = first; it != last; ++it) {
+    for (iterator it = first; it != last; ++it) {
       insert(it);
     }
   }
@@ -177,10 +193,9 @@ class AssocVec {
 
   template <class... Args>
   std::pair<iterator, bool> try_emplace(const key_type& key, Args&&... args) {
-    const_iterator last = end();
-    const_iterator lower = std::lower_bound(begin(), last, compare_key);
-    if (lower != last && lower->first == key) {
-      return std::make_pair<iterator, bool>(lower, false);
+    iterator lower = lower_bound(key);
+    if (lower != end() && lower->first == key) {
+      return std::pair<iterator, bool>(lower, false);
     }
     return insert(
         value_type(std::piecewise_construct, std::forward_as_tuple(key),
@@ -189,10 +204,9 @@ class AssocVec {
 
   template <class... Args>
   std::pair<iterator, bool> try_emplace(key_type&& key, Args&&... args) {
-    const_iterator last = end();
-    const_iterator lower = std::lower_bound(begin(), last, compare_key);
-    if (lower != last && lower->first == key) {
-      return std::make_pair<iterator, bool>(lower, false);
+    iterator lower = lower_bound(key);
+    if (lower != end() && lower->first == key) {
+      return std::pair<iterator, bool>(lower, false);
     }
     return insert(value_type(
         std::piecewise_construct, std::forward_as_tuple(std::move(key)),
@@ -206,9 +220,8 @@ class AssocVec {
   }
 
   size_type erase(const key_type& key) {
-    const_iterator last = end();
-    const_iterator lower = std::lower_bound(begin(), last, compare_key);
-    if (lower != last && lower->first == key) {
+    iterator lower = lower_bound(key);
+    if (lower != end() && lower->first == key) {
       erase(lower);
       return 1;
     }
@@ -224,8 +237,8 @@ class AssocVec {
   size_type count(const key_type& key) const { return contains(key) ? 1 : 0; }
 
   iterator find(const key_type& key) {
-    const_iterator last = end();
-    const_iterator lower = std::lower_bound(begin(), last, key, compare_key);
+    iterator last = end();
+    iterator lower = lower_bound(key);
     if (lower != last && lower->first == key) {
       return lower;
     }
@@ -248,19 +261,46 @@ class AssocVec {
   }
 
   iterator lower_bound(const key_type& key) {
-    return std::lower_bound(begin(), end(), key, compare_key);
+    iterator first = begin();
+    iterator last = end();
+    using diff = typename std::iterator_traits<iterator>::difference_type;
+    for (diff len = std::distance(first, last); len != 0;) {
+      diff half = len / 2;
+      iterator mid = first;
+      std::advance(mid, half);
+      if (compare(mid->first, key)) {
+        len -= half + 1;
+        first = ++mid;
+      } else {
+        len = half;
+      }
+    }
+    return first;
   }
 
   const_iterator lower_bound(const key_type& key) const {
-    return std::lower_bound(begin(), end(), key, compare_key);
+    return lower_bound(key);
   }
 
   iterator upper_bound(const key_type& key) {
-    return std::upper_bound(begin(), end(), key, compare_key);
+    iterator first = begin();
+    iterator last = end();
+    using diff = typename std::iterator_traits<iterator>::difference_type;
+    for (diff len = std::distance(first, last); len != 0;) {
+      diff half = len / 2;
+      iterator mid = first;
+      if (!bool(compare(key, mid->first))) {
+        len -= half + 1;
+        first = ++mid;
+      } else {
+        len = half;
+      }
+    }
+    return first;
   }
 
   const_iterator upper_bound(const key_type& key) const {
-    return std::upper_bound(begin(), end(), key, compare_key);
+    return upper_bound(key);
   }
 
   /* Observers */
