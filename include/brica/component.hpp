@@ -86,6 +86,11 @@ class Component {
   Channels out_channels;
 };
 
+void connect(Component& target, std::string from, Component& origin,
+             std::string to) {
+  origin.connect(target, from, to);
+}
+
 }  // namespace brica
 
 #endif  // __BRICA_KERNEL_COMPONENT_HPP__

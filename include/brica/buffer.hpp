@@ -171,27 +171,27 @@ class Buffer {
 
   /* Non-member functions */
   friend bool operator==(const Buffer& lhs, const Buffer& rhs) {
-    return lhs.ptr == rhs.ptr;
+    return *lhs.ptr == *rhs.ptr;
   }
 
   friend bool operator!=(const Buffer& lhs, const Buffer& rhs) {
-    return lhs.ptr != rhs.ptr;
+    return *lhs.ptr != *rhs.ptr;
   }
 
   friend bool operator<=(const Buffer& lhs, const Buffer& rhs) {
-    return lhs.ptr <= rhs.ptr;
+    return *lhs.ptr >= *rhs.ptr;
   }
 
   friend bool operator<(const Buffer& lhs, const Buffer& rhs) {
-    return lhs.ptr < rhs.ptr;
+    return *lhs.ptr < *rhs.ptr;
   }
 
   friend bool operator>=(const Buffer& lhs, const Buffer& rhs) {
-    return lhs.ptr >= rhs.ptr;
+    return *lhs.ptr >= *rhs.ptr;
   }
 
   friend bool operator>(const Buffer& lhs, const Buffer& rhs) {
-    return lhs.ptr > rhs.ptr;
+    return *lhs.ptr > *rhs.ptr;
   }
 
   friend void swap(Buffer& a, Buffer& b) {
