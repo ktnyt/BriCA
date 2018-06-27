@@ -35,8 +35,8 @@ namespace brica {
 
 class IComponent {
  public:
-  virtual void make_in_channel(std::string) = 0;
-  virtual void make_out_channel(std::string) = 0;
+  virtual void make_in_port(std::string) = 0;
+  virtual void make_out_port(std::string) = 0;
   virtual Buffer& get_input(std::string) = 0;
   virtual Buffer& get_output(std::string) = 0;
   virtual void collect() = 0;
@@ -46,7 +46,7 @@ class IComponent {
 
 class Component : public IComponent {
  public:
-  class Channel {
+  class Port {
    public:
     void send(Buffer& value) { set(value); }
     const Buffer& recv() const { return get(); }
@@ -58,38 +58,38 @@ class Component : public IComponent {
     Buffer buffer;
   };
 
-  using Channels = AssocVec<std::string, std::shared_ptr<Channel>>;
+  using Ports = AssocVec<std::string, std::shared_ptr<Port>>;
 
   Component(Functor f) : functor(f) {}
 
-  void make_in_channel(std::string name) {
+  void make_in_port(std::string name) {
     inputs.try_emplace(name, Buffer());
-    in_channels.try_emplace(name, std::make_shared<Channel>());
+    in_port.try_emplace(name, std::make_shared<Port>());
   }
 
-  const Buffer& get_in_channel_buffer(std::string name) {
-    return in_channels.at(name)->get();
+  const Buffer& get_in_port_buffer(std::string name) {
+    return in_port.at(name)->get();
   }
 
-  void make_out_channel(std::string name) {
+  void make_out_port(std::string name) {
     outputs.try_emplace(name, Buffer());
-    out_channels.try_emplace(name, std::make_shared<Channel>());
+    out_port.try_emplace(name, std::make_shared<Port>());
   }
 
-  const Buffer& get_out_channel_buffer(std::string name) {
-    return out_channels.at(name)->get();
+  const Buffer& get_out_port_buffer(std::string name) {
+    return out_port.at(name)->get();
   }
 
   Buffer& get_input(std::string name) { return inputs.at(name); }
   Buffer& get_output(std::string name) { return outputs.at(name); }
 
   void connect(Component& target, std::string from, std::string to) {
-    in_channels[to] = target.out_channels[from];
+    in_port[to] = target.out_port[from];
   }
 
   void collect() {
     for (std::size_t i = 0; i < inputs.size(); ++i) {
-      inputs.index(i) = in_channels.index(i)->recv();
+      inputs.index(i) = in_port.index(i)->recv();
     }
   }
 
@@ -97,7 +97,7 @@ class Component : public IComponent {
 
   void expose() {
     for (std::size_t i = 0; i < outputs.size(); ++i) {
-      out_channels.index(i)->send(outputs.index(i));
+      out_port.index(i)->send(outputs.index(i));
     }
   }
 
@@ -105,8 +105,8 @@ class Component : public IComponent {
   Functor functor;
   Dict inputs;
   Dict outputs;
-  Channels in_channels;
-  Channels out_channels;
+  Ports in_port;
+  Ports out_port;
 };
 
 template <class C>

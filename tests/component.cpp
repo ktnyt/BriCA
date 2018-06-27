@@ -15,10 +15,10 @@ TEST(component, emit_pipe_null) {
   Component pipe(f_pipe);
   Component null(f_null);
 
-  emit.make_out_channel(key);
-  pipe.make_in_channel(key);
-  pipe.make_out_channel(key);
-  null.make_in_channel(key);
+  emit.make_out_port(key);
+  pipe.make_in_port(key);
+  pipe.make_out_port(key);
+  null.make_in_port(key);
 
   connect(emit, key, pipe, key);
   connect(pipe, key, null, key);

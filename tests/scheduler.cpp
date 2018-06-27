@@ -15,10 +15,10 @@ TEST(scheduler, emit_pipe_null) {
   Component pipe(f_pipe);
   Component null(f_null);
 
-  emit.make_out_channel(key);
-  pipe.make_in_channel(key);
-  pipe.make_out_channel(key);
-  null.make_in_channel(key);
+  emit.make_out_port(key);
+  pipe.make_in_port(key);
+  pipe.make_out_port(key);
+  null.make_in_port(key);
 
   connect(emit, key, pipe, key);
   connect(pipe, key, null, key);
@@ -31,56 +31,56 @@ TEST(scheduler, emit_pipe_null) {
   s.add_component(&null, t);
 
   EXPECT_TRUE(emit.get_output(key).empty());
-  EXPECT_TRUE(emit.get_out_channel_buffer(key).empty());
+  EXPECT_TRUE(emit.get_out_port_buffer(key).empty());
 
   EXPECT_TRUE(pipe.get_input(key).empty());
-  EXPECT_TRUE(pipe.get_in_channel_buffer(key).empty());
+  EXPECT_TRUE(pipe.get_in_port_buffer(key).empty());
 
   EXPECT_TRUE(pipe.get_output(key).empty());
-  EXPECT_TRUE(pipe.get_out_channel_buffer(key).empty());
+  EXPECT_TRUE(pipe.get_out_port_buffer(key).empty());
 
   EXPECT_TRUE(null.get_input(key).empty());
-  EXPECT_TRUE(null.get_in_channel_buffer(key).empty());
+  EXPECT_TRUE(null.get_in_port_buffer(key).empty());
 
   s.step();
 
   EXPECT_EQ(value, emit.get_output(key));
-  EXPECT_TRUE(emit.get_out_channel_buffer(key).empty());
+  EXPECT_TRUE(emit.get_out_port_buffer(key).empty());
 
   EXPECT_TRUE(pipe.get_input(key).empty());
-  EXPECT_TRUE(pipe.get_in_channel_buffer(key).empty());
+  EXPECT_TRUE(pipe.get_in_port_buffer(key).empty());
 
   EXPECT_TRUE(pipe.get_output(key).empty());
-  EXPECT_TRUE(pipe.get_out_channel_buffer(key).empty());
+  EXPECT_TRUE(pipe.get_out_port_buffer(key).empty());
 
   EXPECT_TRUE(null.get_input(key).empty());
-  EXPECT_TRUE(null.get_in_channel_buffer(key).empty());
+  EXPECT_TRUE(null.get_in_port_buffer(key).empty());
 
   s.step();
 
   EXPECT_EQ(value, emit.get_output(key));
-  EXPECT_EQ(value, emit.get_out_channel_buffer(key));
+  EXPECT_EQ(value, emit.get_out_port_buffer(key));
 
   EXPECT_EQ(value, pipe.get_input(key));
-  EXPECT_EQ(value, pipe.get_in_channel_buffer(key));
+  EXPECT_EQ(value, pipe.get_in_port_buffer(key));
 
   EXPECT_EQ(value, pipe.get_output(key));
-  EXPECT_TRUE(pipe.get_out_channel_buffer(key).empty());
+  EXPECT_TRUE(pipe.get_out_port_buffer(key).empty());
 
   EXPECT_TRUE(null.get_input(key).empty());
-  EXPECT_TRUE(null.get_in_channel_buffer(key).empty());
+  EXPECT_TRUE(null.get_in_port_buffer(key).empty());
 
   s.step();
 
   EXPECT_EQ(value, emit.get_output(key));
-  EXPECT_EQ(value, emit.get_out_channel_buffer(key));
+  EXPECT_EQ(value, emit.get_out_port_buffer(key));
 
   EXPECT_EQ(value, pipe.get_input(key));
-  EXPECT_EQ(value, pipe.get_in_channel_buffer(key));
+  EXPECT_EQ(value, pipe.get_in_port_buffer(key));
 
   EXPECT_EQ(value, pipe.get_output(key));
-  EXPECT_EQ(value, pipe.get_out_channel_buffer(key));
+  EXPECT_EQ(value, pipe.get_out_port_buffer(key));
 
   EXPECT_EQ(value, null.get_input(key));
-  EXPECT_EQ(value, null.get_in_channel_buffer(key));
+  EXPECT_EQ(value, null.get_in_port_buffer(key));
 }
