@@ -27,6 +27,7 @@
 #include <functional>
 #include <iterator>
 #include <memory>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -122,7 +123,7 @@ class AssocVec {
   mapped_type& at(const key_type& key) {
     iterator lower = lower_bound(key);
     if (lower != end() && lower->first == key) {
-      return lower;
+      return lower->second;
     }
     throw std::out_of_range("AssocVec");
   }
@@ -137,8 +138,10 @@ class AssocVec {
   }
 
   mapped_type& operator[](key_type&& key) {
-    return this->try_emplace(key).first->second;
+    return this->try_emplace(std::forward<key_type>(key)).first->second;
   }
+
+  const mapped_type& operator[](const key_type& key) const { return at(key); }
 
   /* Iterators */
   iterator begin() noexcept { return data.begin(); }

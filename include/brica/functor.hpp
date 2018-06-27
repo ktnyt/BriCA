@@ -33,7 +33,7 @@
 namespace brica {
 
 using Dict = AssocVec<std::string, Buffer>;
-using Functor = std::function<void(const Dict, Dict)>;
+using Functor = std::function<void(Dict&, Dict&)>;
 
 }  // namespace brica
 

@@ -33,11 +33,26 @@
 
 namespace brica {
 
-class Component {
+class IComponent {
+ public:
+  virtual void make_in_channel(std::string) = 0;
+  virtual void make_out_channel(std::string) = 0;
+  virtual Buffer& get_input(std::string) = 0;
+  virtual Buffer& get_output(std::string) = 0;
+  virtual void collect() = 0;
+  virtual void execute() = 0;
+  virtual void expose() = 0;
+};
+
+class Component : public IComponent {
+ public:
   class Channel {
    public:
-    virtual void send(Buffer& value) { buffer = value; }
-    virtual const Buffer& recv() const { return buffer; }
+    void send(Buffer& value) { set(value); }
+    const Buffer& recv() const { return get(); }
+
+    void set(Buffer& value) { buffer = value; }
+    const Buffer& get() const { return buffer; }
 
    private:
     Buffer buffer;
@@ -45,20 +60,28 @@ class Component {
 
   using Channels = AssocVec<std::string, std::shared_ptr<Channel>>;
 
- public:
+  Component(Functor f) : functor(f) {}
+
   void make_in_channel(std::string name) {
-    inputs.emplace(name);
-    in_channels.emplace(name);
+    inputs.try_emplace(name, Buffer());
+    in_channels.try_emplace(name, std::make_shared<Channel>());
   }
 
-  Channel& get_in_channel(std::string name) { return *in_channels[name]; }
+  const Buffer& get_in_channel_buffer(std::string name) {
+    return in_channels.at(name)->get();
+  }
 
   void make_out_channel(std::string name) {
-    outputs.emplace(name);
-    out_channels.emplace(name);
+    outputs.try_emplace(name, Buffer());
+    out_channels.try_emplace(name, std::make_shared<Channel>());
   }
 
-  Channel& get_out_channel(std::string name) { return *out_channels[name]; }
+  const Buffer& get_out_channel_buffer(std::string name) {
+    return out_channels.at(name)->get();
+  }
+
+  Buffer& get_input(std::string name) { return inputs.at(name); }
+  Buffer& get_output(std::string name) { return outputs.at(name); }
 
   void connect(Component& target, std::string from, std::string to) {
     in_channels[to] = target.out_channels[from];
@@ -86,8 +109,8 @@ class Component {
   Channels out_channels;
 };
 
-void connect(Component& target, std::string from, Component& origin,
-             std::string to) {
+template <class C>
+void connect(C& target, std::string from, C& origin, std::string to) {
   origin.connect(target, from, to);
 }
 

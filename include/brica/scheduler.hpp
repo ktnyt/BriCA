@@ -24,4 +24,76 @@
 #ifndef __BRICA_KERNEL_SCHEDULER_HPP__
 #define __BRICA_KERNEL_SCHEDULER_HPP__
 
+#include "brica/component.hpp"
+
+#include <queue>
+
+namespace brica {
+
+using Time = unsigned long long;
+
+struct Timing {
+  Time offset;
+  Time interval;
+  Time sleep;
+};
+
+class VirtualTimeScheduler {
+  struct Event {
+    Time time;
+    IComponent* component;
+    Timing timing;
+    bool sleep;
+
+    bool operator<(const Event& rhs) const { return time > rhs.time; }
+  };
+
+ public:
+  void add_component(IComponent* component, Timing timing) {
+    event_queue.push({timing.offset, component, timing, false});
+  }
+
+  void step() {
+    Time time = event_queue.top().time;
+
+    std::queue<IComponent*> awake;
+    std::queue<IComponent*> asleep;
+
+    while (event_queue.top().time == time) {
+      Event event = event_queue.top();
+      event_queue.pop();
+
+      Event next = event;
+
+      if (event.sleep) {
+        asleep.push(event.component);
+        next.time += next.timing.sleep;
+        next.sleep = false;
+      } else {
+        awake.push(event.component);
+        next.time += next.timing.interval;
+        next.sleep = true;
+      }
+
+      event_queue.push(next);
+    }
+
+    while (!asleep.empty()) {
+      asleep.front()->expose();
+      asleep.pop();
+    }
+
+    while (!awake.empty()) {
+      awake.front()->collect();
+      awake.front()->execute();
+      awake.pop();
+    }
+  }
+
+ private:
+  std::priority_queue<Event> event_queue;
+};
+
+}  // namespace brica
+
 #endif  // __BRICA_KERNEL_SCHEDULER_HPP__
