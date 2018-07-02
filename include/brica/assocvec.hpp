@@ -24,11 +24,9 @@
 #ifndef __BRICA_KERNEL_ASSOCVEC_HPP__
 #define __BRICA_KERNEL_ASSOCVEC_HPP__
 
+#include <algorithm>
 #include <functional>
-#include <iterator>
 #include <memory>
-#include <type_traits>
-#include <utility>
 #include <vector>
 
 namespace brica {
